@@ -93,7 +93,7 @@ async function run() {
     });
 
     // user make admin
-    app.patch('/users/admin/:id', verifyJWT, verifyAdmin, async (req, res) => {
+    app.patch('/users/:id', verifyJWT, verifyAdmin, async (req, res) => {
       const id = req.params.id;
       console.log(id);
       const filter = { _id: new ObjectId(id) };
@@ -106,18 +106,13 @@ async function run() {
       res.send(result);
     });
 
-    app.delete(
-      '/users/admin/:user_id',
-      verifyJWT,
-      verifyAdmin,
-      async (req, res) => {
-        const id = req.params.user_id;
+    app.delete('/users/:user_id', verifyJWT, verifyAdmin, async (req, res) => {
+      const id = req.params.user_id;
 
-        const query = { _id: new ObjectId(id) };
-        const result = await usersCollection.deleteOne(query);
-        res.send(result);
-      }
-    );
+      const query = { _id: new ObjectId(id) };
+      const result = await usersCollection.deleteOne(query);
+      res.send(result);
+    });
     // product releted api
 
     //public products
@@ -126,12 +121,18 @@ async function run() {
       const { limit } = req.query;
       const limInt = parseInt(limit) || 0;
       const products = await productsCollection
-        .find(query)
+        .find({})
         .limit(limInt)
         .sort({ uploadAt: -1 })
         .toArray();
 
       res.send(products);
+    });
+    app.get('/products/:id', async (req, res) => {
+      const id = req.params.id;
+      const query = { _id: new ObjectId(id) };
+      const result = await productsCollection.findOne(query);
+      res.send(result);
     });
 
     // create product
@@ -139,6 +140,35 @@ async function run() {
       const product = req.body;
       const result = await productsCollection.insertOne(product);
       res.send(result);
+    });
+
+    //
+    app.delete('/products/:id', verifyJWT, verifyAdmin, async (req, res) => {
+      const id = req.params.id;
+
+      const query = { _id: new ObjectId(id) };
+      const result = await productsCollection.deleteOne(query);
+      res.send(result);
+    });
+
+    // cart api
+
+    // cart collection apis
+    app.get('/carts', verifyJWT, async (req, res) => {
+      const email = req.query.email;
+
+      if (!email) {
+        res.send([]);
+      }
+      const decodedEmail = req.decoded.email;
+      if (email !== decodedEmail) {
+        return res
+          .status(403)
+          .send({ error: true, message: 'forbidden access' });
+      }
+      const query = { email: email };
+      const result = await cartCollection.find(query).toArray();
+      res.status(200).send(result);
     });
   } finally {
     // Ensures that the client will close when you finish/error
