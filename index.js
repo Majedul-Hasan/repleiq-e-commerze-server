@@ -105,6 +105,19 @@ async function run() {
       const result = await usersCollection.updateOne(filter, updateDoc);
       res.send(result);
     });
+    // user make customer
+    app.patch('/users/subs/:id', verifyJWT, verifyAdmin, async (req, res) => {
+      const id = req.params.id;
+      console.log(id);
+      const filter = { _id: new ObjectId(id) };
+      const updateDoc = {
+        $set: {
+          role: 'subscriber',
+        },
+      };
+      const result = await usersCollection.updateOne(filter, updateDoc);
+      res.send(result);
+    });
 
     app.delete('/users/:user_id', verifyJWT, verifyAdmin, async (req, res) => {
       const id = req.params.user_id;
@@ -140,6 +153,31 @@ async function run() {
       const product = req.body;
       const result = await productsCollection.insertOne(product);
       res.send(result);
+    });
+
+    app.patch('/products/:id', verifyJWT, verifyAdmin, async (req, res) => {
+      const id = req.params.id;
+
+      const filter = { _id: new ObjectId(id) };
+      const product = await productsCollection.findOne(filter);
+
+      const options = { upsert: false };
+      const updatedProduct = req.body;
+      if (product) {
+        const updateDoc = {
+          $set: {
+            ...updatedProduct,
+          },
+        };
+        const result = await productsCollection.updateOne(
+          filter,
+          updateDoc,
+          options
+        );
+        res.send(result);
+      } else {
+        res.status(403).send({ error: true, message: 'unauthorized access' });
+      }
     });
 
     //
