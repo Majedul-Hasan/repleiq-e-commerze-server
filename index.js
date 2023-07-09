@@ -78,6 +78,19 @@ async function run() {
         res.send(result);
       }
     );
+    //admin verification route
+    app.get('/users/:email', verifyJWT, async (req, res) => {
+      const email = req.params.email;
+      const query = { email: email };
+      // console.log(email, query);
+      if (req.decoded.email !== email) {
+        res.send({ role: false });
+      }
+      const user = await usersCollection.findOne(query);
+      // console.log(user);
+      const result = { role: user?.role };
+      res.send(result);
+    });
 
     // user make admin
     app.patch('/users/admin/:id', verifyJWT, verifyAdmin, async (req, res) => {
@@ -105,28 +118,27 @@ async function run() {
         res.send(result);
       }
     );
+    // product releted api
 
+    //public products
+    //courses public route
+    app.get('/products', async (req, res) => {
+      const { limit } = req.query;
+      const limInt = parseInt(limit) || 0;
+      const products = await productsCollection
+        .find(query)
+        .limit(limInt)
+        .sort({ uploadAt: -1 })
+        .toArray();
+
+      res.send(products);
+    });
+
+    // create product
     app.post('/products', verifyJWT, verifyAdmin, async (req, res) => {
-      const email = req.decoded.email;
-      const course = req.body;
-      const user = await usersCollection.findOne({ email: email });
-      console.log(user);
-
-      if (user) {
-        const result = await coursesCollection.insertOne(course);
-        console.log(result);
-        if (!user.courses) {
-          user.courses = []; // Initialize 'courses' as an empty array if it doesn't exist
-        }
-        user.courses.push(result.insertedId);
-        await usersCollection.updateOne(
-          { _id: new ObjectId(user._id) },
-          { $set: user }
-        );
-        console.log(result);
-        console.log(user);
-        res.send(result);
-      }
+      const product = req.body;
+      const result = await productsCollection.insertOne(product);
+      res.send(result);
     });
   } finally {
     // Ensures that the client will close when you finish/error
