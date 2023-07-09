@@ -1,0 +1,25 @@
+{
+  "name": "repleiq-e-commerze-server",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "start": "node index.js",
+    "dev": "nodemon index.js",
+    "hex": "node generateRandomHex.js"
+  },
+  "author": "",
+  "license": "ISC",
+  "devDependencies": {
+    "morgan": "^1.10.0",
+    "nodemon": "^3.0.0"
+  },
+  "dependencies": {
+    "cors": "^2.8.5",
+    "dotenv": "^16.3.1",
+    "express": "^4.18.2",
+    "jsonwebtoken": "^9.0.1",
+    "mongodb": "^5.7.0",
+    "stripe": "^12.12.0"
+  }
+}
